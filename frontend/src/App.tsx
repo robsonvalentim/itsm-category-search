@@ -28,6 +28,19 @@ const App: React.FC = () => {
     filteredResults 
   } = useSearch();
 
+  const copyToClipboard = (item: any) => {
+    // Monta o caminho completo excluindo campos vazios
+    const path = [item.servico, item.subservico1, item.subservico2, item.subservico3, item.subservico4, item.subservico5]
+      .filter(sub => sub && sub !== "" && sub !== '---')
+      .join(" > ");
+
+    navigator.clipboard.writeText(path).then(() => {
+      // Aqui poderíamos colocar um brinde visual ou toast, 
+      // mas por enquanto um alerta simples ou apenas a execução já resolve.
+      alert(`Caminho copiado: ${path}`);
+    });
+  };
+
   const renderPriority = (priority: string | number) => {
     const p = String(priority);
     if (p.includes('1.0')) return <span className="bg-red-100 text-red-700 px-2 py-1 rounded text-[10px] font-bold uppercase">Crítica</span>;
@@ -125,7 +138,7 @@ const App: React.FC = () => {
             filteredResults.map((item, index) => (
               <div 
                 key={index} 
-                className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-blue-300 transition-all group"
+                className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-blue-300 transition-all group relative"
               >
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex flex-wrap gap-2">
@@ -153,47 +166,63 @@ const App: React.FC = () => {
                   {item.servico}
                 </h3>
                 
-                <p className="text-sm text-slate-500 leading-relaxed font-medium">
+                <p className="text-sm text-slate-500 leading-relaxed font-medium mb-4">
                   {[item.subservico2, item.subservico3, item.subservico4, item.subservico5]
-                    .filter(sub => sub && sub !== '---')
+                    .filter(sub => sub && sub !== '---' && sub !== "")
                     .join(" ➔ ")}
                 </p>
 
-                <div className="mt-4 pt-4 border-t border-slate-50 flex items-center justify-between">
-                   <div className="flex items-center gap-4 text-[10px] text-slate-400 font-bold uppercase tracking-tight">
+                <div className="pt-4 border-t border-slate-50 flex items-center justify-between">
+                  <div className="flex items-center gap-4 text-[10px] text-slate-400 font-bold uppercase tracking-tight">
                       <span className="flex items-center gap-1">
                         <Clock size={12} /> {item.tipodeservico}
                       </span>
                       <span className="flex items-center gap-1">
                         <Layers size={12} /> {item['Área Serviço']}
                       </span>
-                   </div>
-                   <button className="text-[10px] text-blue-500 font-bold uppercase hover:underline">
-                     Ver Detalhes
-                   </button>
+                  </div>
+                  
+                  {/* BOTÃO DE CÓPIA (Copy to Clipboard) */}
+                  <button 
+                    onClick={() => copyToClipboard(item)}
+                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-[11px] font-bold uppercase transition-colors shadow-sm"
+                  >
+                    Copiar Caminho
+                  </button>
                 </div>
               </div>
             ))
           ) : (searchTerm !== "" || selectedEmpresa !== "" || selectedArea !== "" || selectedCD !== "") ? (
-            <div className="bg-white border-2 border-dashed border-slate-200 rounded-2xl py-16 text-center text-slate-400">
-              <p className="italic">Nenhuma categoria encontrada para os filtros aplicados.</p>
+            /* EMPTY STATE REFINADO */
+            <div className="bg-white border-2 border-dashed border-slate-200 rounded-2xl py-20 text-center">
+              <div className="bg-slate-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Search className="h-8 w-8 text-slate-300" />
+              </div>
+              <h3 className="text-slate-700 font-bold mb-1">Nenhum resultado encontrado</h3>
+              <p className="text-slate-400 text-sm mb-6 max-w-xs mx-auto">
+                Não encontramos categorias com esses filtros. Tente remover termos da busca ou trocar a localidade (CD).
+              </p>
               <button 
                 onClick={() => {setSearchTerm(''); setSelectedEmpresa(''); setSelectedArea(''); setSelectedCD('');}}
-                className="mt-4 text-blue-500 text-xs font-bold uppercase hover:underline"
+                className="text-blue-600 text-xs font-bold uppercase tracking-widest hover:text-blue-800 transition-colors"
               >
                 Limpar todos os filtros
               </button>
             </div>
           ) : (
-            <div className="bg-white border-2 border-dashed border-slate-200 rounded-2xl py-16 text-center text-slate-400">
-              <Search className="mx-auto h-8 w-8 mb-4 opacity-20" />
-              <p className="italic">Selecione uma localidade (CD) ou digite um termo para começar...</p>
+            /* ESTADO INICIAL */
+            <div className="bg-white border-2 border-dashed border-slate-200 rounded-2xl py-20 text-center">
+              <div className="bg-blue-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MapPin className="h-8 w-8 text-blue-200" />
+              </div>
+              <p className="text-slate-500 font-medium italic">
+                Selecione uma localidade (CD) ou digite um termo para começar...
+              </p>
             </div>
           )}
         </div>
 
         {/*Barra de navegação */}
-        {/* ... dentro do main, após a listagem de cards ... */}
 
         {totalPages > 1 && (
           <div className="flex flex-col items-center gap-4 mt-8 pb-10">
