@@ -27,18 +27,43 @@ const App: React.FC = () => {
     listas, 
     filteredResults 
   } = useSearch();
+  
+  const copyToClipboard = async (text: string) => {
+    // Se por algum motivo o texto for nulo ou indefinido, paramos aqui
+    if (!text) return;
 
-  const copyToClipboard = (item: any) => {
-    // Monta o caminho completo excluindo campos vazios
-    const path = [item.servico, item.subservico1, item.subservico2, item.subservico3, item.subservico4, item.subservico5]
-      .filter(sub => sub && sub !== "" && sub !== '---')
-      .join(" > ");
+    // 1. Tentativa com a API moderna (Funciona no seu localhost)
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(text);
+        // Aqui você pode disparar um alerta ou toast
+        return;
+      } catch (err) {
+        console.error("Falha na API moderna, tentando fallback...", err);
+      }
+    }
 
-    navigator.clipboard.writeText(path).then(() => {
-      // Aqui poderíamos colocar um brinde visual ou toast, 
-      // mas por enquanto um alerta simples ou apenas a execução já resolve.
-      alert(`Caminho copiado: ${path}`);
-    });
+    // 2. Fallback com execCommand (Funciona no IP para o Valmir)
+    try {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      
+      // Escondendo o elemento da tela
+      textArea.style.position = "fixed";
+      textArea.style.left = "-9999px";
+      textArea.style.top = "0";
+      document.body.appendChild(textArea);
+      
+      textArea.focus();
+      textArea.select();
+      
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+
+      if (!successful) throw new Error("Cópia mal sucedida");
+    } catch (err) {
+      console.error("Erro crítico na cópia:", err);
+    }
   };
 
   const renderPriority = (priority: string | number) => {
@@ -168,7 +193,7 @@ const App: React.FC = () => {
                 
                 <p className="text-sm text-slate-500 leading-relaxed font-medium mb-4">
                   {[item.subservico2, item.subservico3, item.subservico4, item.subservico5]
-                    .filter(sub => sub && sub !== '---' && sub !== "")
+                    .filter(sub => typeof sub === 'string' && sub.trim() !== "")
                     .join(" ➔ ")}
                 </p>
 
@@ -184,9 +209,34 @@ const App: React.FC = () => {
                   
                   {/* BOTÃO DE CÓPIA (Copy to Clipboard) */}
                   <button 
-                    onClick={() => copyToClipboard(item)}
+                    onClick={() => {
+                      // 1. Criamos um array com a ordem exata que você definiu
+                      const passos = [
+                        item['Área Serviço'],
+                        item['Empresa Serviço'],
+                        item.servico,
+                        item.tipodeservico,
+                        item.subservico1,
+                        item.subservico2,
+                        item.subservico3,
+                        item.subservico4,
+                        item.subservico5
+                      ];
+
+                      // 2. Filtramos apenas o que não for vazio, nulo ou "---"
+                      const caminhoFormatado = passos
+                        .filter(passo => {
+                          // Retorna true apenas se houver texto e se esse texto não for apenas espaços
+                          return typeof passo === 'string' && passo.trim().length > 0;
+                        })
+                        .join(" -> ");
+
+                      // 3. Enviamos o texto final para a função de cópia
+                      copyToClipboard(caminhoFormatado);
+                    }}
                     className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-[11px] font-bold uppercase transition-colors shadow-sm"
                   >
+                    <Layers size={14} />
                     Copiar Caminho
                   </button>
                 </div>

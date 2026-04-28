@@ -51,7 +51,20 @@ Como o ambiente corporativo possui restrições de rede (proxy), utilizamos uma 
 
 A aplicação estará disponível em: http://localhost:8080
 
-## Estrutura de Dados
-O sistema consome uma base de dados centralizada em formato JSON, processada para garantir que campos críticos como Empresa Serviço e Prioridade sejam exibidos de forma intuitiva.
+## Estrutura e Sanitização de Dados
+
+O sistema consome uma base de dados centralizada em formato JSON (`categorias.json`) contendo mais de 16.000 registros. Para garantir a integridade da interface e a precisão da ferramenta de cópia, os dados passam por um processo de **ETL (Extract, Transform, Load)** simplificado:
+
+### Processo de Limpeza (Sanitização)
+Os dados originais provenientes de planilhas de ITSM continham placeholders de campos vazios (ex: `"'---"`, `"---"`). Foi aplicado um script de higienização em Python para:
+- **Remover placeholders:** Substituição de strings nulas ou de preenchimento por strings vazias (`""`).
+- **Normalização de Espaços:** Remoção de espaços em branco acidentais (trimming).
+- **Integridade Estrutural:** Manutenção das chaves de subserviços para garantir a compatibilidade com a tipagem do TypeScript.
+
+### Resiliência na Exibição
+O frontend implementa filtros de renderização dinâmica que ignoram campos vazios, garantindo que:
+1. O fluxo visual (`Caminho ➔ Categoria`) não exiba separadores órfãos.
+2. A função de cópia gere apenas os passos válidos para a abertura do chamado no sistema oficial.
+
 
 **Desenvolvido por Robson Valentim** Foco em automação de TI e transição para DevOps.
