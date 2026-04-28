@@ -34,15 +34,19 @@ Como o ambiente corporativo possui restrições de rede (proxy), utilizamos uma 
    cd helpdesk/frontend
 
 2. **Navegue até a pasta do frontend:**
+    ```bash
     cd helpdesk/frontend
 
 3. **Gere os arquivos de produção (Build local):**
+    ```bash
     npm install e depois npm run build
 
 4. **Construa a imagem Docker:**
+    ```bash
     docker build -t itsm-navigator .
 
 5. **Inicie o contêiner:**
+    ```bash
     docker run -d -p 8080:80 --name itsm-app itsm-navigator
 
 A aplicação estará disponível em: http://localhost:8080
@@ -50,4 +54,4 @@ A aplicação estará disponível em: http://localhost:8080
 ## Estrutura de Dados
 O sistema consome uma base de dados centralizada em formato JSON, processada para garantir que campos críticos como Empresa Serviço e Prioridade sejam exibidos de forma intuitiva.
 
-Desenvolvido por Robson Valentim Foco em automação de TI e transição para DevOps.
+**Desenvolvido por Robson Valentim** Foco em automação de TI e transição para DevOps.
